@@ -3,7 +3,7 @@ import 'package:path/path.dart';
 import '../models/user.dart';
 import '../models/account.dart';
 import '../models/category.dart';
-import '../models/transaction.dart';
+import '../models/transaction.dart' as models;
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
@@ -47,7 +47,7 @@ class DatabaseHelper {
         name TEXT NOT NULL,
         type TEXT NOT NULL,
         balance REAL NOT NULL DEFAULT 0,
-        currency TEXT NOT NULL DEFAULT 'USD',
+        currency TEXT NOT NULL DEFAULT 'BDT',
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
         FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
@@ -221,12 +221,14 @@ class DatabaseHelper {
   }
 
   // Transaction operations
-  Future<int> createTransaction(Transaction transaction) async {
+  Future<int> createTransaction(models.Transaction transaction) async {
     final db = await database;
     return await db.insert('transactions', transaction.toMap());
   }
 
-  Future<List<Transaction>> getTransactionsByAccountId(String accountId) async {
+  Future<List<models.Transaction>> getTransactionsByAccountId(
+    String accountId,
+  ) async {
     final db = await database;
     final maps = await db.query(
       'transactions',
@@ -234,10 +236,12 @@ class DatabaseHelper {
       whereArgs: [accountId],
       orderBy: 'date DESC',
     );
-    return maps.map((map) => Transaction.fromMap(map)).toList();
+    return maps.map((map) => models.Transaction.fromMap(map)).toList();
   }
 
-  Future<List<Transaction>> getTransactionsByUserId(String userId) async {
+  Future<List<models.Transaction>> getTransactionsByUserId(
+    String userId,
+  ) async {
     final db = await database;
     final maps = await db.rawQuery(
       '''
@@ -248,10 +252,10 @@ class DatabaseHelper {
     ''',
       [userId],
     );
-    return maps.map((map) => Transaction.fromMap(map)).toList();
+    return maps.map((map) => models.Transaction.fromMap(map)).toList();
   }
 
-  Future<List<Transaction>> getTransactionsByDateRange(
+  Future<List<models.Transaction>> getTransactionsByDateRange(
     String userId,
     DateTime start,
     DateTime end,
@@ -266,10 +270,10 @@ class DatabaseHelper {
     ''',
       [userId, start.toIso8601String(), end.toIso8601String()],
     );
-    return maps.map((map) => Transaction.fromMap(map)).toList();
+    return maps.map((map) => models.Transaction.fromMap(map)).toList();
   }
 
-  Future<Transaction?> getTransactionById(String id) async {
+  Future<models.Transaction?> getTransactionById(String id) async {
     final db = await database;
     final maps = await db.query(
       'transactions',
@@ -277,10 +281,10 @@ class DatabaseHelper {
       whereArgs: [id],
     );
     if (maps.isEmpty) return null;
-    return Transaction.fromMap(maps.first);
+    return models.Transaction.fromMap(maps.first);
   }
 
-  Future<int> updateTransaction(Transaction transaction) async {
+  Future<int> updateTransaction(models.Transaction transaction) async {
     final db = await database;
     return await db.update(
       'transactions',

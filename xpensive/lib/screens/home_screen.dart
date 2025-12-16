@@ -166,7 +166,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '\$${_totalBalance.toStringAsFixed(2)}',
+                      '৳${_totalBalance.toStringAsFixed(2)}',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 32,
@@ -219,7 +219,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            '\$${_totalIncome.toStringAsFixed(2)}',
+                            '৳${_totalIncome.toStringAsFixed(2)}',
                             style: TextStyle(
                               color: Colors.green.shade700,
                               fontSize: 20,
@@ -269,7 +269,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            '\$${_totalExpense.toStringAsFixed(2)}',
+                            '৳${_totalExpense.toStringAsFixed(2)}',
                             style: TextStyle(
                               color: Colors.red.shade700,
                               fontSize: 20,
@@ -362,7 +362,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: TextStyle(color: Colors.grey.shade600),
                     ),
                     trailing: Text(
-                      '${transaction.type == 'income' ? '+' : '-'}\$${transaction.amount.toStringAsFixed(2)}',
+                      '${transaction.type == 'income' ? '+' : '-'}৳${transaction.amount.toStringAsFixed(2)}',
                       style: TextStyle(
                         color: transaction.type == 'income'
                             ? Colors.green.shade700
@@ -498,7 +498,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       isThreeLine: true,
                       trailing: Text(
-                        '${transaction.type == 'income' ? '+' : '-'}\$${transaction.amount.toStringAsFixed(2)}',
+                        '${transaction.type == 'income' ? '+' : '-'}৳${transaction.amount.toStringAsFixed(2)}',
                         style: TextStyle(
                           color: transaction.type == 'income'
                               ? Colors.green.shade700

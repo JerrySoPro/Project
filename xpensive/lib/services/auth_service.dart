@@ -61,7 +61,7 @@ class AuthService {
         name: 'Cash',
         type: 'cash',
         balance: 0.0,
-        currency: 'USD',
+        currency: 'BDT',
         createdAt: now,
         updatedAt: now,
       );
