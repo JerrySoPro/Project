@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../models/user.dart';
 import '../models/account.dart';
 import '../models/category.dart';
 import '../models/transaction.dart';
-import '../services/auth_service.dart';
-import '../services/database_helper.dart';
+import '../services/firebase_service.dart';
 import 'login_screen.dart';
 import 'add_transaction_screen.dart';
 import 'accounts_screen.dart';
@@ -12,16 +12,16 @@ import 'categories_screen.dart';
 import 'statistics_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  final AuthService authService;
+  final User user;
 
-  const HomeScreen({super.key, required this.authService});
+  const HomeScreen({super.key, required this.user});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final DatabaseHelper _db = DatabaseHelper.instance;
+  final FirebaseService _firebase = FirebaseService.instance;
   List<Transaction> _transactions = [];
   List<Account> _accounts = [];
   List<Category> _categories = [];
@@ -38,17 +38,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadData() async {
-    if (widget.authService.currentUser == null) return;
-
     setState(() => _isLoading = true);
 
-    final userId = widget.authService.currentUser!.id;
+    final userId = widget.user.id;
 
-    final accounts = await _db.getAccountsByUserId(userId);
-    final transactions = await _db.getTransactionsByUserId(userId);
-    final categories = await _db.getCategoriesByUserId(userId);
-    final totalIncome = await _db.getTotalIncomeByUserId(userId);
-    final totalExpense = await _db.getTotalExpenseByUserId(userId);
+    final accounts = await _firebase.getAccountsByUserId(userId);
+    final transactions = await _firebase.getTransactionsByUserId(userId);
+    final categories = await _firebase.getCategoriesByUserId(userId);
+    final totalIncome = await _firebase.getTotalIncome(userId);
+    final totalExpense = await _firebase.getTotalExpense(userId);
 
     double totalBalance = 0;
     for (var account in accounts) {
@@ -66,12 +64,14 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void _logout() {
-    widget.authService.logout();
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => const LoginScreen()),
-      (route) => false,
-    );
+  Future<void> _logout() async {
+    await _firebase.logout();
+    if (mounted) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+        (route) => false,
+      );
+    }
   }
 
   Category? _getCategoryById(String id) {
@@ -156,7 +156,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Welcome, ${widget.authService.currentUser?.displayName ?? "User"}',
+                      'Welcome, ${widget.user.displayName}',
                       style: const TextStyle(color: Colors.white, fontSize: 18),
                     ),
                     const SizedBox(height: 8),
@@ -516,10 +516,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _deleteTransaction(Transaction transaction) async {
-    await _db.deleteTransaction(transaction.id);
+    await _firebase.deleteTransaction(transaction.id);
 
     // Update account balance
-    final account = await _db.getAccountById(transaction.accountId);
+    final account = await _firebase.getAccountById(transaction.accountId);
     if (account != null) {
       double newBalance = account.balance;
       if (transaction.type == 'income') {
@@ -527,9 +527,7 @@ class _HomeScreenState extends State<HomeScreen> {
       } else {
         newBalance += transaction.amount;
       }
-      await _db.updateAccount(
-        account.copyWith(balance: newBalance, updatedAt: DateTime.now()),
-      );
+      await _firebase.updateAccountBalance(account.id, newBalance);
     }
 
     _loadData();
@@ -545,8 +543,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            AddTransactionScreen(authService: widget.authService),
+        builder: (context) => AddTransactionScreen(user: widget.user),
       ),
     );
     if (result == true) {
@@ -559,8 +556,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final screens = [
       _buildDashboard(),
       _buildTransactionsList(),
-      AccountsScreen(authService: widget.authService, onDataChanged: _loadData),
-      StatisticsScreen(authService: widget.authService),
+      AccountsScreen(user: widget.user, onDataChanged: _loadData),
+      StatisticsScreen(user: widget.user),
     ];
 
     return Scaffold(
@@ -576,8 +573,7 @@ class _HomeScreenState extends State<HomeScreen> {
               await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) =>
-                      CategoriesScreen(authService: widget.authService),
+                  builder: (context) => CategoriesScreen(user: widget.user),
                 ),
               );
               _loadData();

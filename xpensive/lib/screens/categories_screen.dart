@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+import '../models/user.dart';
 import '../models/category.dart';
-import '../services/auth_service.dart';
-import '../services/database_helper.dart';
+import '../services/firebase_service.dart';
 
 class CategoriesScreen extends StatefulWidget {
-  final AuthService authService;
+  final User user;
 
-  const CategoriesScreen({super.key, required this.authService});
+  const CategoriesScreen({super.key, required this.user});
 
   @override
   State<CategoriesScreen> createState() => _CategoriesScreenState();
@@ -15,7 +15,7 @@ class CategoriesScreen extends StatefulWidget {
 
 class _CategoriesScreenState extends State<CategoriesScreen>
     with SingleTickerProviderStateMixin {
-  final DatabaseHelper _db = DatabaseHelper.instance;
+  final FirebaseService _firebase = FirebaseService.instance;
   late TabController _tabController;
   List<Category> _expenseCategories = [];
   List<Category> _incomeCategories = [];
@@ -73,8 +73,8 @@ class _CategoriesScreenState extends State<CategoriesScreen>
   }
 
   Future<void> _loadCategories() async {
-    final userId = widget.authService.currentUser!.id;
-    final allCategories = await _db.getCategoriesByUserId(userId);
+    final userId = widget.user.id;
+    final allCategories = await _firebase.getCategoriesByUserId(userId);
 
     setState(() {
       _expenseCategories = allCategories
@@ -229,14 +229,14 @@ class _CategoriesScreenState extends State<CategoriesScreen>
                 final uuid = const Uuid();
                 final category = Category(
                   id: uuid.v4(),
-                  userId: widget.authService.currentUser!.id,
+                  userId: widget.user.id,
                   name: nameController.text,
                   type: type,
                   color: selectedColor,
                   icon: selectedIcon,
                 );
 
-                await _db.createCategory(category);
+                await _firebase.createCategory(category);
                 Navigator.pop(context);
                 _loadCategories();
               },
@@ -365,7 +365,7 @@ class _CategoriesScreenState extends State<CategoriesScreen>
                   color: selectedColor,
                 );
 
-                await _db.updateCategory(updatedCategory);
+                await _firebase.updateCategory(updatedCategory);
                 Navigator.pop(context);
                 _loadCategories();
               },
@@ -397,7 +397,7 @@ class _CategoriesScreenState extends State<CategoriesScreen>
     );
 
     if (confirm == true) {
-      await _db.deleteCategory(category.id);
+      await _firebase.deleteCategory(category.id);
       _loadCategories();
       if (mounted) {
         ScaffoldMessenger.of(

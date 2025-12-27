@@ -1,25 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+import '../models/user.dart';
 import '../models/account.dart';
-import '../services/auth_service.dart';
-import '../services/database_helper.dart';
+import '../services/firebase_service.dart';
 
 class AccountsScreen extends StatefulWidget {
-  final AuthService authService;
+  final User user;
   final VoidCallback? onDataChanged;
 
-  const AccountsScreen({
-    super.key,
-    required this.authService,
-    this.onDataChanged,
-  });
+  const AccountsScreen({super.key, required this.user, this.onDataChanged});
 
   @override
   State<AccountsScreen> createState() => _AccountsScreenState();
 }
 
 class _AccountsScreenState extends State<AccountsScreen> {
-  final DatabaseHelper _db = DatabaseHelper.instance;
+  final FirebaseService _firebase = FirebaseService.instance;
   List<Account> _accounts = [];
   bool _isLoading = true;
 
@@ -30,8 +26,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
   }
 
   Future<void> _loadAccounts() async {
-    final userId = widget.authService.currentUser!.id;
-    final accounts = await _db.getAccountsByUserId(userId);
+    final userId = widget.user.id;
+    final accounts = await _firebase.getAccountsByUserId(userId);
     setState(() {
       _accounts = accounts;
       _isLoading = false;
@@ -76,7 +72,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
     final nameController = TextEditingController();
     final balanceController = TextEditingController(text: '0');
     String selectedType = 'cash';
-    String selectedCurrency = 'USD';
+    String selectedCurrency = 'BDT';
 
     showDialog(
       context: context,
@@ -128,7 +124,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                   ),
                   decoration: const InputDecoration(
                     labelText: 'Initial Balance',
-                    prefixText: '\$ ',
+                    prefixText: '৳ ',
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -136,10 +132,10 @@ class _AccountsScreenState extends State<AccountsScreen> {
                   value: selectedCurrency,
                   decoration: const InputDecoration(labelText: 'Currency'),
                   items: const [
+                    DropdownMenuItem(value: 'BDT', child: Text('BDT (৳)')),
                     DropdownMenuItem(value: 'USD', child: Text('USD (\$)')),
                     DropdownMenuItem(value: 'EUR', child: Text('EUR (€)')),
                     DropdownMenuItem(value: 'GBP', child: Text('GBP (£)')),
-                    DropdownMenuItem(value: 'BDT', child: Text('BDT (৳)')),
                   ],
                   onChanged: (value) {
                     setDialogState(() {
@@ -170,7 +166,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
 
                 final account = Account(
                   id: uuid.v4(),
-                  userId: widget.authService.currentUser!.id,
+                  userId: widget.user.id,
                   name: nameController.text,
                   type: selectedType,
                   balance: balance,
@@ -179,7 +175,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                   updatedAt: now,
                 );
 
-                await _db.createAccount(account);
+                await _firebase.createAccount(account);
                 Navigator.pop(context);
                 _loadAccounts();
                 widget.onDataChanged?.call();
@@ -247,7 +243,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                   ),
                   decoration: const InputDecoration(
                     labelText: 'Balance',
-                    prefixText: '\$ ',
+                    prefixText: '৳ ',
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -255,10 +251,10 @@ class _AccountsScreenState extends State<AccountsScreen> {
                   value: selectedCurrency,
                   decoration: const InputDecoration(labelText: 'Currency'),
                   items: const [
+                    DropdownMenuItem(value: 'BDT', child: Text('BDT (৳)')),
                     DropdownMenuItem(value: 'USD', child: Text('USD (\$)')),
                     DropdownMenuItem(value: 'EUR', child: Text('EUR (€)')),
                     DropdownMenuItem(value: 'GBP', child: Text('GBP (£)')),
-                    DropdownMenuItem(value: 'BDT', child: Text('BDT (৳)')),
                   ],
                   onChanged: (value) {
                     setDialogState(() {
@@ -286,7 +282,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                   updatedAt: DateTime.now(),
                 );
 
-                await _db.updateAccount(updatedAccount);
+                await _firebase.updateAccount(updatedAccount);
                 Navigator.pop(context);
                 _loadAccounts();
                 widget.onDataChanged?.call();
@@ -321,7 +317,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
     );
 
     if (confirm == true) {
-      await _db.deleteAccount(account.id);
+      await _firebase.deleteAccount(account.id);
       _loadAccounts();
       widget.onDataChanged?.call();
       if (mounted) {
@@ -441,7 +437,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                     crossAxisAlignment: CrossAxisAlignment.end,
                                     children: [
                                       Text(
-                                        '\$${account.balance.toStringAsFixed(2)}',
+                                        '৳${account.balance.toStringAsFixed(2)}',
                                         style: TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold,

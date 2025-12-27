@@ -12,6 +12,34 @@
 .swiftpm/
 migrate_working_dir/
 
+# Firebase configuration (contains sensitive API keys)
+lib/firebase_options.dart
+google-services.json
+GoogleService-Info.plist
+firebase.json
+.firebaserc
+firebase-debug.log
+firestore.rules
+firestore.indexes.json
+storage.rules
+
+# Environment and secrets
+.env
+.env.*
+*.env
+secrets/
+config/secrets.dart
+
+# Local database files
+*.db
+*.sqlite
+*.sqlite3
+*.hive
+*.isar
+
+# Documentation
+PROJECT_DOCUMENTATION.md
+
 # IntelliJ related
 *.iml
 *.ipr

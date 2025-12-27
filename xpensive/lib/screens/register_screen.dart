@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
+import '../services/firebase_service.dart';
 import 'home_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -16,7 +16,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _displayNameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  final _authService = AuthService();
+  final _firebaseService = FirebaseService.instance;
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -36,10 +36,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     setState(() => _isLoading = true);
 
-    final result = await _authService.register(
-      username: _usernameController.text.trim(),
+    final result = await _firebaseService.registerWithEmail(
       email: _emailController.text.trim(),
       password: _passwordController.text,
+      username: _usernameController.text.trim(),
       displayName: _displayNameController.text.trim(),
     );
 
@@ -49,7 +49,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (mounted) {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
-            builder: (context) => HomeScreen(authService: _authService),
+            builder: (context) => HomeScreen(user: result['user']),
           ),
           (route) => false,
         );

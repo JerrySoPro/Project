@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
+import '../services/firebase_service.dart';
 import 'register_screen.dart';
 import 'home_screen.dart';
 
@@ -12,15 +12,15 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _authService = AuthService();
+  final _firebaseService = FirebaseService.instance;
   bool _isLoading = false;
   bool _obscurePassword = true;
 
   @override
   void dispose() {
-    _usernameController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -30,8 +30,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() => _isLoading = true);
 
-    final result = await _authService.login(
-      username: _usernameController.text.trim(),
+    final result = await _firebaseService.loginWithEmail(
+      email: _emailController.text.trim(),
       password: _passwordController.text,
     );
 
@@ -41,7 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (context) => HomeScreen(authService: _authService),
+            builder: (context) => HomeScreen(user: result['user']),
           ),
         );
       }
@@ -105,17 +105,21 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 32),
                         TextFormField(
-                          controller: _usernameController,
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
                           decoration: InputDecoration(
-                            labelText: 'Username',
-                            prefixIcon: const Icon(Icons.person),
+                            labelText: 'Email',
+                            prefixIcon: const Icon(Icons.email),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Please enter your username';
+                              return 'Please enter your email';
+                            }
+                            if (!value.contains('@')) {
+                              return 'Please enter a valid email';
                             }
                             return null;
                           },

@@ -22,28 +22,28 @@ class Account {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'user_id': userId,
+      'userId': userId,
       'name': name,
       'type': type,
       'balance': balance,
       'currency': currency,
-      'created_at': createdAt.toIso8601String(),
-      'updated_at': updatedAt.toIso8601String(),
+      'createdAt': createdAt.toIso8601String(),
+      'updatedAt': updatedAt.toIso8601String(),
     };
   }
 
   factory Account.fromMap(Map<String, dynamic> map) {
     return Account(
       id: map['id'],
-      userId: map['user_id'],
+      userId: map['userId'] ?? map['user_id'],
       name: map['name'],
       type: map['type'],
       balance: map['balance'] is int
           ? (map['balance'] as int).toDouble()
-          : map['balance'],
+          : (map['balance'] as num).toDouble(),
       currency: map['currency'],
-      createdAt: DateTime.parse(map['created_at']),
-      updatedAt: DateTime.parse(map['updated_at']),
+      createdAt: DateTime.parse(map['createdAt'] ?? map['created_at']),
+      updatedAt: DateTime.parse(map['updatedAt'] ?? map['updated_at']),
     );
   }
 

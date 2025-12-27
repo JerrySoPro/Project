@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+import '../models/user.dart';
 import '../models/account.dart';
 import '../models/category.dart';
 import '../models/transaction.dart';
-import '../services/auth_service.dart';
-import '../services/database_helper.dart';
+import '../services/firebase_service.dart';
 
 class AddTransactionScreen extends StatefulWidget {
-  final AuthService authService;
+  final User user;
 
-  const AddTransactionScreen({super.key, required this.authService});
+  const AddTransactionScreen({super.key, required this.user});
 
   @override
   State<AddTransactionScreen> createState() => _AddTransactionScreenState();
@@ -19,7 +19,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   final _formKey = GlobalKey<FormState>();
   final _amountController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final DatabaseHelper _db = DatabaseHelper.instance;
+  final FirebaseService _firebase = FirebaseService.instance;
 
   String _transactionType = 'expense';
   String? _selectedAccountId;
@@ -44,9 +44,12 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   }
 
   Future<void> _loadData() async {
-    final userId = widget.authService.currentUser!.id;
-    final accounts = await _db.getAccountsByUserId(userId);
-    final categories = await _db.getCategoriesByType(userId, _transactionType);
+    final userId = widget.user.id;
+    final accounts = await _firebase.getAccountsByUserId(userId);
+    final categories = await _firebase.getCategoriesByType(
+      userId,
+      _transactionType,
+    );
 
     setState(() {
       _accounts = accounts;
@@ -62,8 +65,11 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   }
 
   Future<void> _loadCategories() async {
-    final userId = widget.authService.currentUser!.id;
-    final categories = await _db.getCategoriesByType(userId, _transactionType);
+    final userId = widget.user.id;
+    final categories = await _firebase.getCategoriesByType(
+      userId,
+      _transactionType,
+    );
     setState(() {
       _categories = categories;
       if (categories.isNotEmpty) {
@@ -106,6 +112,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
     final transaction = Transaction(
       id: uuid.v4(),
+      userId: widget.user.id,
       accountId: _selectedAccountId!,
       categoryId: _selectedCategoryId!,
       amount: amount,
@@ -118,10 +125,10 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       updatedAt: now,
     );
 
-    await _db.createTransaction(transaction);
+    await _firebase.createTransaction(transaction);
 
     // Update account balance
-    final account = await _db.getAccountById(_selectedAccountId!);
+    final account = await _firebase.getAccountById(_selectedAccountId!);
     if (account != null) {
       double newBalance = account.balance;
       if (_transactionType == 'income') {
@@ -129,9 +136,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       } else {
         newBalance -= amount;
       }
-      await _db.updateAccount(
-        account.copyWith(balance: newBalance, updatedAt: now),
-      );
+      await _firebase.updateAccountBalance(_selectedAccountId!, newBalance);
     }
 
     if (mounted) {
@@ -299,7 +304,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                       ),
                       decoration: InputDecoration(
                         labelText: 'Amount',
-                        prefixText: '\$ ',
+                        prefixText: '৳ ',
                         prefixStyle: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
@@ -340,7 +345,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                         return DropdownMenuItem(
                           value: account.id,
                           child: Text(
-                            '${account.name} (\$${account.balance.toStringAsFixed(2)})',
+                            '${account.name} (৳${account.balance.toStringAsFixed(2)})',
                           ),
                         );
                       }).toList(),

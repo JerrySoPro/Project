@@ -5,6 +5,7 @@ class Category {
   final String type; // 'income' or 'expense'
   final String color;
   final String icon;
+  final DateTime? createdAt;
 
   Category({
     required this.id,
@@ -13,27 +14,32 @@ class Category {
     required this.type,
     required this.color,
     required this.icon,
+    this.createdAt,
   });
 
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'user_id': userId,
+      'userId': userId,
       'name': name,
       'type': type,
       'color': color,
       'icon': icon,
+      'createdAt': createdAt?.toIso8601String(),
     };
   }
 
   factory Category.fromMap(Map<String, dynamic> map) {
     return Category(
       id: map['id'],
-      userId: map['user_id'],
+      userId: map['userId'] ?? map['user_id'],
       name: map['name'],
       type: map['type'],
       color: map['color'],
       icon: map['icon'],
+      createdAt: map['createdAt'] != null
+          ? DateTime.parse(map['createdAt'])
+          : null,
     );
   }
 
@@ -44,6 +50,7 @@ class Category {
     String? type,
     String? color,
     String? icon,
+    DateTime? createdAt,
   }) {
     return Category(
       id: id ?? this.id,
@@ -52,6 +59,7 @@ class Category {
       type: type ?? this.type,
       color: color ?? this.color,
       icon: icon ?? this.icon,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 }

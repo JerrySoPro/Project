@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../services/auth_service.dart';
-import '../services/database_helper.dart';
+import '../models/user.dart';
+import '../services/firebase_service.dart';
 
 class StatisticsScreen extends StatefulWidget {
-  final AuthService authService;
+  final User user;
 
-  const StatisticsScreen({super.key, required this.authService});
+  const StatisticsScreen({super.key, required this.user});
 
   @override
   State<StatisticsScreen> createState() => _StatisticsScreenState();
 }
 
 class _StatisticsScreenState extends State<StatisticsScreen> {
-  final DatabaseHelper _db = DatabaseHelper.instance;
+  final FirebaseService _firebase = FirebaseService.instance;
   Map<String, double> _expensesByCategory = {};
   double _totalIncome = 0;
   double _totalExpense = 0;
@@ -39,14 +39,22 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   }
 
   Future<void> _loadStatistics() async {
-    final userId = widget.authService.currentUser!.id;
+    final userId = widget.user.id;
 
-    final expensesByCategory = await _db.getExpensesByCategory(userId);
-    final totalIncome = await _db.getTotalIncomeByUserId(userId);
-    final totalExpense = await _db.getTotalExpenseByUserId(userId);
+    final expensesByCategory = await _firebase.getExpensesByCategory(userId);
+    final totalIncome = await _firebase.getTotalIncome(userId);
+    final totalExpense = await _firebase.getTotalExpense(userId);
+
+    // Get category names for display
+    final Map<String, double> categoryNameExpenses = {};
+    for (final entry in expensesByCategory.entries) {
+      final category = await _firebase.getCategoryById(entry.key);
+      final name = category?.name ?? 'Unknown';
+      categoryNameExpenses[name] = entry.value;
+    }
 
     setState(() {
-      _expensesByCategory = expensesByCategory;
+      _expensesByCategory = categoryNameExpenses;
       _totalIncome = totalIncome;
       _totalExpense = totalExpense;
       _isLoading = false;
@@ -140,7 +148,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      '${data.key}: \$${data.value.toStringAsFixed(2)}',
+                      '${data.key}: ৳${data.value.toStringAsFixed(2)}',
                       style: const TextStyle(fontSize: 12),
                     ),
                   ],
@@ -182,7 +190,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                       getTooltipItem: (group, groupIndex, rod, rodIndex) {
                         String label = groupIndex == 0 ? 'Income' : 'Expense';
                         return BarTooltipItem(
-                          '$label\n\$${rod.toY.toStringAsFixed(2)}',
+                          '$label\n৳${rod.toY.toStringAsFixed(2)}',
                           const TextStyle(color: Colors.white),
                         );
                       },
@@ -215,7 +223,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                         reservedSize: 60,
                         getTitlesWidget: (value, meta) {
                           return Text(
-                            '\$${value.toInt()}',
+                            '৳${value.toInt()}',
                             style: TextStyle(
                               color: Colors.grey.shade600,
                               fontSize: 10,
@@ -312,7 +320,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
-                                    '\$${_totalIncome.toStringAsFixed(2)}',
+                                    '৳${_totalIncome.toStringAsFixed(2)}',
                                     style: TextStyle(
                                       fontSize: 20,
                                       fontWeight: FontWeight.bold,
@@ -352,7 +360,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
-                                    '\$${_totalExpense.toStringAsFixed(2)}',
+                                    '৳${_totalExpense.toStringAsFixed(2)}',
                                     style: TextStyle(
                                       fontSize: 20,
                                       fontWeight: FontWeight.bold,
@@ -399,7 +407,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                                     ),
                                   ),
                                   Text(
-                                    '\$${(_totalIncome - _totalExpense).abs().toStringAsFixed(2)}',
+                                    '৳${(_totalIncome - _totalExpense).abs().toStringAsFixed(2)}',
                                     style: TextStyle(
                                       fontSize: 24,
                                       fontWeight: FontWeight.bold,

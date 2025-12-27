@@ -23,12 +23,12 @@ class User {
     return {
       'id': id,
       'username': username,
-      'password_hash': passwordHash,
+      'passwordHash': passwordHash,
       'email': email,
-      'display_name': displayName,
-      'profile_photo': profilePhoto,
-      'created_at': createdAt.toIso8601String(),
-      'last_login': lastLogin?.toIso8601String(),
+      'displayName': displayName,
+      'profilePhoto': profilePhoto,
+      'createdAt': createdAt.toIso8601String(),
+      'lastLogin': lastLogin?.toIso8601String(),
     };
   }
 
@@ -36,14 +36,16 @@ class User {
     return User(
       id: map['id'],
       username: map['username'],
-      passwordHash: map['password_hash'],
+      passwordHash: map['passwordHash'] ?? map['password_hash'] ?? '',
       email: map['email'],
-      displayName: map['display_name'],
-      profilePhoto: map['profile_photo'],
-      createdAt: DateTime.parse(map['created_at']),
-      lastLogin: map['last_login'] != null
-          ? DateTime.parse(map['last_login'])
-          : null,
+      displayName: map['displayName'] ?? map['display_name'],
+      profilePhoto: map['profilePhoto'] ?? map['profile_photo'],
+      createdAt: DateTime.parse(map['createdAt'] ?? map['created_at']),
+      lastLogin: map['lastLogin'] != null
+          ? DateTime.parse(map['lastLogin'])
+          : (map['last_login'] != null
+                ? DateTime.parse(map['last_login'])
+                : null),
     );
   }
 

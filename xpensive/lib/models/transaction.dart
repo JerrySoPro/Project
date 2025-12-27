@@ -1,5 +1,6 @@
 class Transaction {
   final String id;
+  final String? userId;
   final String accountId;
   final String categoryId;
   final double amount;
@@ -14,6 +15,7 @@ class Transaction {
 
   Transaction({
     required this.id,
+    this.userId,
     required this.accountId,
     required this.categoryId,
     required this.amount,
@@ -30,41 +32,44 @@ class Transaction {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'account_id': accountId,
-      'category_id': categoryId,
+      'userId': userId,
+      'accountId': accountId,
+      'categoryId': categoryId,
       'amount': amount,
       'type': type,
       'date': date.toIso8601String(),
       'description': description,
-      'is_recurring': isRecurring ? 1 : 0,
-      'recurring_id': recurringId,
-      'receipt_photo': receiptPhoto,
-      'created_at': createdAt.toIso8601String(),
-      'updated_at': updatedAt.toIso8601String(),
+      'isRecurring': isRecurring,
+      'recurringId': recurringId,
+      'receiptPhoto': receiptPhoto,
+      'createdAt': createdAt.toIso8601String(),
+      'updatedAt': updatedAt.toIso8601String(),
     };
   }
 
   factory Transaction.fromMap(Map<String, dynamic> map) {
     return Transaction(
       id: map['id'],
-      accountId: map['account_id'],
-      categoryId: map['category_id'],
+      userId: map['userId'],
+      accountId: map['accountId'] ?? map['account_id'],
+      categoryId: map['categoryId'] ?? map['category_id'],
       amount: map['amount'] is int
           ? (map['amount'] as int).toDouble()
-          : map['amount'],
+          : (map['amount'] as num).toDouble(),
       type: map['type'],
       date: DateTime.parse(map['date']),
       description: map['description'],
-      isRecurring: map['is_recurring'] == 1,
-      recurringId: map['recurring_id'],
-      receiptPhoto: map['receipt_photo'],
-      createdAt: DateTime.parse(map['created_at']),
-      updatedAt: DateTime.parse(map['updated_at']),
+      isRecurring: map['isRecurring'] == true || map['is_recurring'] == 1,
+      recurringId: map['recurringId'] ?? map['recurring_id'],
+      receiptPhoto: map['receiptPhoto'] ?? map['receipt_photo'],
+      createdAt: DateTime.parse(map['createdAt'] ?? map['created_at']),
+      updatedAt: DateTime.parse(map['updatedAt'] ?? map['updated_at']),
     );
   }
 
   Transaction copyWith({
     String? id,
+    String? userId,
     String? accountId,
     String? categoryId,
     double? amount,
@@ -79,6 +84,7 @@ class Transaction {
   }) {
     return Transaction(
       id: id ?? this.id,
+      userId: userId ?? this.userId,
       accountId: accountId ?? this.accountId,
       categoryId: categoryId ?? this.categoryId,
       amount: amount ?? this.amount,
