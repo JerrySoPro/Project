@@ -91,7 +91,7 @@ dependencies:
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/yourusername/xpensive.git
+   git clone https://github.com/jerrysopro/xpensive-a-personal-budget-tracker.git
    cd xpensive
    ```
 
@@ -230,9 +230,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 👨‍💻 Author
 
-**Your Name**
+**Rakib Rahman Rimon**
 
-- GitHub: [@yourusername](https://github.com/yourusername)
+- GitHub: [@JerrySoPro](https://github.com/yourusername)
 
 ## 🙏 Acknowledgments
 
@@ -242,4 +242,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-<p align="center">Made with ❤️ using Flutter</p>
+<p align="center">Made with Flutter</p>
