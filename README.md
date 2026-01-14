@@ -218,7 +218,7 @@ flutter run -d ios
 | :-----------------------------------: | :---------------------------------------: | :----------------------------------: |
 | ![Accounts](screenshots/accounts.png) | ![Categories](screenshots/categories.png) | ![Stats](screenshots/statistics.png) |
 
-|               Profile               |             Dark Mode              |
+|               History               |             Dark Mode              |
 | :---------------------------------: | :--------------------------------: |
 | ![History](screenshots/history.png) | ![Dark](screenshots/dark_mode.png) |
 
